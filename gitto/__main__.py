@@ -113,6 +113,12 @@ def init(username, pkey, datadir=DATADIR):
         ('create-project', username))
 
     os.mkdir(os.path.join(confdir, "hooks"))
+    repo_post_receive = os.path.join(confdir, "hooks", "post-receive")
+    with open(repo_post_receive, "w") as f:
+        f.write("#!/bin/sh\nrepo_hook=\"hooks/post-receive`echo ${PWD} | awk -F/ '{print $(NF -1)\\\"-\\\"$NF}' | sed 's/^~/_/;tx;s/^/-/;:x'`\"\n\nif [ -x ${repo_hook} ]; then\n  exec ${repo_hook}\nfi\n")
+
+    os.chmod(repo_post_receive, os.stat(repo_post_receive)[0] | stat.S_IXUSR)
+
     os.mkdir(os.path.join(confdir, "config-hooks"))
     post_receive = os.path.join(confdir, "config-hooks", "post-receive")
     with open(post_receive, "w") as f:
