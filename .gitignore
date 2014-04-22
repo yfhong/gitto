@@ -2,3 +2,13 @@
 *.pyc
 *.pyo
 dropin.cache
+
+# ignore default repositories directory
+data/
+
+# ignore common use host keys
+id_rsa
+id_rsa.pub
+
+# ignore common use virtualenv
+venv/
