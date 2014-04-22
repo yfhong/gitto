@@ -71,7 +71,6 @@ def git_init(path, bare, *extra):
     os.mkdir(os.path.join(repopath, "refs"))
     os.mkdir(os.path.join(repopath, "refs", "heads"))
     os.mkdir(os.path.join(repopath, "refs", "tags"))
-    os.mkdir(os.path.join(repopath, "hooks"))
 
 
 def config_repo_init(confdir, creator):
@@ -79,13 +78,6 @@ def config_repo_init(confdir, creator):
              ('user', 'name', creator),
              ('user', 'email', creator+"@gitto"),
              ('receive', 'denyCurrentBranch', 'ignore'))
-
-    post_receive = os.path.join(confdir, ".git", "hooks", "post-receive")
-
-    with open(post_receive, "w") as f:
-        f.write("#!/bin/sh\ncd ..\nenv -i - git reset --hard HEAD\n")
-
-    os.chmod(post_receive, os.stat(post_receive)[0] | stat.S_IXUSR)
 
     git(confdir, "add", ".")
     git(confdir, "commit", "-a", "-m", "Initial commit")
@@ -120,7 +112,17 @@ def init(username, pkey, datadir=DATADIR):
         ('config', username),
         ('create-project', username))
 
+    os.mkdir(os.path.join(confdir, "hooks"))
+    os.mkdir(os.path.join(confdir, "config-hooks"))
+    post_receive = os.path.join(confdir, "config-hooks", "post-receive")
+    with open(post_receive, "w") as f:
+        f.write("#!/bin/sh\ncd ..\nenv -i - git reset --hard HEAD\n")
+
+    os.chmod(post_receive, os.stat(post_receive)[0] | stat.S_IXUSR)
+
     config_repo_init(confdir, username)
+    hooksdir = os.path.join("..", "config-hooks")
+    os.symlink(hooksdir, os.path.join(confdir, ".git", "hooks"))
 
 
 @command(argument("project", help="project name"),
@@ -150,6 +152,8 @@ def init_project(project, creator, datadir=DATADIR):
         ('pull:*', creator))
 
     config_repo_init(confdir, creator)
+    hooksdir = os.path.join("..", "..", "..", ".config", "config-hooks")
+    os.symlink(hooksdir, os.path.join(confdir, ".git", "hooks"))
 
 
 @command(argument("--public", action="store_true", help="publish repository"),
@@ -178,6 +182,8 @@ def init_repo(project, repo, public, datadir=DATADIR):
         exit(1)
 
     git_init(repopath, True)
+    hooksdir = os.path.join("..", "..", ".config", "hooks")
+    os.symlink(hooksdir, os.path.join(repopath, "hooks"))
 
     if public:
         open(os.path.join(repopath, GIT_DAEMON_EXPORT_OK), "w").close()

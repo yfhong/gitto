@@ -139,6 +139,8 @@ command = Command(description='Gitto SSH Command')
 
 @command(argument("project", type=valid_name, help="Project name"))
 def create(project):
+    """create new project"""
+
     if not check_acl(DATADIR, "create-project"):
         print >>sys.stderr, "ERROR: You are not allowed to create new project."
         exit(1)

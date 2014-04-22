@@ -116,10 +116,15 @@ Global Configuration
   keys/
     user1
     user2
+  hooks/
+  config-hooks/
 
 put USER's public key under keys folder
 
 set ssh banner in BANNER
+
+put git hooks under hooks folder
+put git hooks of config repositories under config-hooks folder
 
 acl.conf
 
